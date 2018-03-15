@@ -57,7 +57,7 @@ VELOX_GARBAGE_COLLECTOR = "UseConcMarkSweepGC"
 VELOX_HVM_AMI = 'ami-10119778'
 VELOX_HEAP_SIZE_GB = 8
 
-ETCD_PORT = 4001
+ETCD_PORT = 2379  # 4001
 ETCD_BASE_PATH = "/v2/keys/cluster_config"
 
 
@@ -493,7 +493,7 @@ def kill_velox_node():
             time.sleep(2)
             run("killall java")
 
-    
+
 
 @task
 @parallel

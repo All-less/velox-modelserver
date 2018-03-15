@@ -20,7 +20,7 @@ newsgroups_config = {
 
 config = {
         'sparkMaster': "local[2]",
-        'sparkDataLocation': "/Users/crankshaw/Desktop/velox-data",
+        'sparkDataLocation': "/Users/Loy/Temp/velox-modelserver/temp",
         'models': {
                 'matrixfact': json.dumps(matrixfact_config),
                 'newsgroups': json.dumps(newsgroups_config)

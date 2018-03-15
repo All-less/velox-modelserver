@@ -38,14 +38,14 @@ class VeloxApplication extends Application[VeloxConfiguration] with Logging {
   override def getName = "velox model server"
 
   override def initialize(bootstrap: Bootstrap[VeloxConfiguration]) {
-    bootstrap.getObjectMapper.registerModule(new DefaultScalaModule()) 
+    bootstrap.getObjectMapper.registerModule(new DefaultScalaModule())
   }
 
   override def run(conf: VeloxConfiguration, env: Environment) {
 
     // Get cluster settings from etcd
     // FIXME this assumes that etcd is running on each velox server
-    val etcdClient = new EtcdClient(conf.hostname, 4001, conf.hostname, new DispatchUtil)
+    val etcdClient = new EtcdClient(conf.hostname, 2379, conf.hostname, new DispatchUtil)
     try {
       val partitionMap: Seq[String] = getPartitionMap(etcdClient)
       val sparkMaster = etcdClient.getValue(s"$configEtcdPath/sparkMaster")

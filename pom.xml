@@ -157,7 +157,7 @@
 
       <dependency>
         <groupId>edu.berkeley.cs.amplab</groupId>
-        <artifactId>keystone_2.10</artifactId>
+        <artifactId>keystoneml_2.10</artifactId>
         <version>0.1</version>
         <exclusions>
           <exclusion>
