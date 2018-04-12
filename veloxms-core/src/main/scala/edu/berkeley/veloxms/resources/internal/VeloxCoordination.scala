@@ -9,6 +9,8 @@ import edu.berkeley.veloxms.models.Model
 import edu.berkeley.veloxms.util.{Logging, Utils}
 import org.apache.spark.SparkContext
 
+import scala.io.Source
+
 import scala.reflect.ClassTag
 
 case class HDFSLocation(loc: String)
@@ -122,15 +124,23 @@ class DownloadBulkObservationsServlet[T : ClassTag](
     try {
       val obsLocation = jsonMapper.readValue(req.getInputStream, classOf[HDFSLocation])
 
-      val thisPartition = partitionMap.indexOf(hostname)
-      val numPartitions = partitionMap.size
-      val observations = sparkContext.objectFile[(UserID, T, Double)](obsLocation.loc).filter { x =>
-        val uid = x._1
-        Utils.nonNegativeMod(uid.hashCode(), numPartitions) == thisPartition
-      }
+      if (obsLocation.loc.startsWith("_GLIMPSE_OF_THE_SUMMERLAND_")) {
+        val path = obsLocation.loc.drop(27)
+        Source.fromFile(path).getLines.foreach { line =>
+          val res = line.split("\t")
+          onlineUpdateManager.addObservation(res(0).toLong, res(1).toLong.asInstanceOf[T], 1.0)
+        }
+      } else {
+        val thisPartition = partitionMap.indexOf(hostname)
+        val numPartitions = partitionMap.size
+        val observations = sparkContext.objectFile[(UserID, T, Double)](obsLocation.loc).filter { x =>
+          val uid = x._1
+          Utils.nonNegativeMod(uid.hashCode(), numPartitions) == thisPartition
+        }
 
-      observations.collect().foreach { case (uid, item, score) =>
-        onlineUpdateManager.addObservation(uid, item, score)
+        observations.collect().foreach { case (uid, item, score) =>
+          onlineUpdateManager.addObservation(uid, item, score)
+        }
       }
 
       resp.setContentType("application/json")

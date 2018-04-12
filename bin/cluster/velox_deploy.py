@@ -323,11 +323,12 @@ def install_velox_local(etcd_loc, keystone_git_hash="master"):
     else:
         abort("{pl} is unsupported".format(pl=sys.platform))
     with lcd(velox_root_dir + "/lib"):
-        local("rm -rf keystone")
-        local("git clone https://github.com/amplab/keystone.git")
-    with lcd(velox_root_dir + "/lib/keystone"):
-        local("git checkout %s" % keystone_git_hash)
-        local("sbt/sbt publish-m2")
+        if local("test -d keystone").failed:
+            local("rm -rf keystone")
+            local("git clone https://github.com/amplab/keystone.git")
+            with lcd(velox_root_dir + "/lib/keystone"):
+                local("git checkout %s" % keystone_git_hash)
+                local("sbt/sbt publish-m2")
     with lcd(velox_root_dir):
         local("mvn install:install-file -Dfile=lib/mlmatrix_2.10-0.1.jar -DgroupId=edu.berkeley.cs.amplab -DartifactId=mlmatrix -Dversion=0.1 -Dpackaging=jar")
         local("mvn package")
@@ -465,7 +466,7 @@ def start_velox(start_local="n"):
     if start_local.lower() == "y":
         velox_root_dir = os.path.abspath("../..")
         server_cmd = ("java -XX:+{gc} -Xms{hs}g -Xmx{hs}g -XX:MaxPermSize=512M "
-                      "-Ddw.hostname=127.0.0.1 -cp {vr}/{jar} {cls} server & sleep 5; exit 0"
+                      "-Ddw.hostname=127.0.0.1 -cp {vr}/{jar} {cls} server &>velox.log & sleep 5; exit 0"
                       ).format(gc=VELOX_GARBAGE_COLLECTOR,
                                hs=VELOX_HEAP_SIZE_GB,
                                vr=velox_root_dir,

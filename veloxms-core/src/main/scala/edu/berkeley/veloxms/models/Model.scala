@@ -1,4 +1,3 @@
-
 package edu.berkeley.veloxms.models
 
 import java.util.Date
@@ -72,7 +71,7 @@ abstract class Model[T: ClassTag](
   protected def computeFeatures(data: T, version: Version) : FeatureVector
 
   /**
-   * Retrains 
+   * Retrains
    * @param observations
    * @param nextVersion
    * @return
@@ -152,9 +151,17 @@ abstract class Model[T: ClassTag](
         -1 * (predict(uid, x, version) compare predict(uid, y, version))
       }
     }
+    // Sorting.quickSort(candidateSet)(itemOrdering)
+    // candidateSet.slice(0, k)
 
-    Sorting.quickSort(candidateSet)(itemOrdering)
-    candidateSet.slice(0, k)
+    val predictionOrdering = new Ordering[(T, Double)] {
+      override def compare(x: (T, Double), y: (T, Double)) = {
+        -1 * (x._2 compare y._2)
+      }
+    }
+    val preditions = candidateSet.map { item => (item, predict(uid, item, version)) }
+    Sorting.quickSort(preditions)(predictionOrdering)
+    preditions.map(_._1).slice(0, k)
   }
 
   final def addObservation(uid: UserID, item: T, score: Double) {
